@@ -315,6 +315,7 @@
 				3FC18AF51F485F06006BCC9F /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 

@@ -17,6 +17,7 @@
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
     // Override point for customization after application launch.
+    [self setUpCoreDataStack];
     return YES;
 }
 
@@ -50,36 +51,74 @@
 }
 
 
-#pragma mark - Core Data stack
+//#pragma mark - Core Data stack
+//
+//@synthesize persistentContainer = _persistentContainer;
+@synthesize managedObjectContext=managedObjectContext;
 
-@synthesize persistentContainer = _persistentContainer;
+//
+//- (NSPersistentContainer *)persistentContainer {
+//    // The persistent container for the application. This implementation creates and returns a container, having loaded the store for the application to it.
+//    @synchronized (self) {
+//        if (_persistentContainer == nil) {
+//            _persistentContainer = [[NSPersistentContainer alloc] initWithName:@"coredata2"];
+//            [_persistentContainer loadPersistentStoresWithCompletionHandler:^(NSPersistentStoreDescription *storeDescription, NSError *error) {
+//                if (error != nil) {
+//                    // Replace this implementation with code to handle the error appropriately.
+//                    // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
+//                    
+//                    /*
+//                     Typical reasons for an error here include:
+//                     * The parent directory does not exist, cannot be created, or disallows writing.
+//                     * The persistent store is not accessible, due to permissions or data protection when the device is locked.
+//                     * The device is out of space.
+//                     * The store could not be migrated to the current model version.
+//                     Check the error message to determine what the actual problem was.
+//                    */
+//                    NSLog(@"Unresolved error %@, %@", error, error.userInfo);
+//                    abort();
+//                }
+//            }];
+//        }
+//    }
+//    
+//    return _persistentContainer;
+//}
+//
 
-- (NSPersistentContainer *)persistentContainer {
-    // The persistent container for the application. This implementation creates and returns a container, having loaded the store for the application to it.
-    @synchronized (self) {
-        if (_persistentContainer == nil) {
-            _persistentContainer = [[NSPersistentContainer alloc] initWithName:@"coredata2"];
-            [_persistentContainer loadPersistentStoresWithCompletionHandler:^(NSPersistentStoreDescription *storeDescription, NSError *error) {
-                if (error != nil) {
-                    // Replace this implementation with code to handle the error appropriately.
-                    // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                    
-                    /*
-                     Typical reasons for an error here include:
-                     * The parent directory does not exist, cannot be created, or disallows writing.
-                     * The persistent store is not accessible, due to permissions or data protection when the device is locked.
-                     * The device is out of space.
-                     * The store could not be migrated to the current model version.
-                     Check the error message to determine what the actual problem was.
-                    */
-                    NSLog(@"Unresolved error %@, %@", error, error.userInfo);
-                    abort();
-                }
-            }];
+
+-(void)setUpCoreDataStack
+{
+    NSManagedObjectModel *model = [NSManagedObjectModel mergedModelFromBundles:[NSBundle allBundles]];
+    NSPersistentStoreCoordinator *psc = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:model];
+    
+    NSURL *url = [[[[NSFileManager defaultManager] URLsForDirectory:NSDocumentDirectory inDomains:NSUserDomainMask] lastObject] URLByAppendingPathComponent:@"coredata2.xcdatamodeld"];
+    
+    NSDictionary *options = @{NSPersistentStoreFileProtectionKey: NSFileProtectionComplete,
+                              NSMigratePersistentStoresAutomaticallyOption:@YES};
+    NSError *error = nil;
+    NSPersistentStore *store = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:options error:&error];
+    if (!store)
+    {
+        NSLog(@"Error adding persistent store. Error %@",error);
+        
+        NSError *deleteError = nil;
+        if ([[NSFileManager defaultManager] removeItemAtURL:url error:&deleteError])
+        {
+            error = nil;
+            store = [psc addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:url options:options error:&error];
+        }
+        
+        if (!store)
+        {
+            // Also inform the user...
+            NSLog(@"Failed to create persistent store. Error %@. Delete error %@",error,deleteError);
+            abort();
         }
     }
     
-    return _persistentContainer;
+    managedObjectContext = [[NSManagedObjectContext alloc] initWithConcurrencyType:NSMainQueueConcurrencyType];
+    managedObjectContext.persistentStoreCoordinator = psc;
 }
 
 #pragma mark - Core Data Saving support

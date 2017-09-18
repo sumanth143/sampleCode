@@ -7,8 +7,17 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "AppDelegate.h"
+#import "coredata2+CoreDataModel.h"
 
 @interface ViewController : UIViewController
+@property (weak, nonatomic) IBOutlet UITextField *name;
+@property (weak, nonatomic) IBOutlet UITextField *age;
+- (IBAction)fetch:(id)sender;
+- (IBAction)Save:(id)sender;
+@property AppDelegate *ad;
+@property NSEntityDescription *BRNEntity;
+@property NSArray *student;
 
 
 @end

@@ -14,6 +14,9 @@
 @property (strong, nonatomic) UIWindow *window;
 
 @property (readonly, strong) NSPersistentContainer *persistentContainer;
+@property NSManagedObjectContext *managedObjectContext;
+@property NSPersistentStoreCoordinator *persistentStoreCoordinator;
+@property NSManagedObjectModel *managedObjectModel;
 
 - (void)saveContext;
 
